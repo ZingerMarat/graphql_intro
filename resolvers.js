@@ -17,4 +17,38 @@ export const resolvers = {
   Author: {
     movies: (parent) => movies.filter((m) => m.authorId === parent.id),
   },
+
+  Mutation: {
+    addMovie: (_, { title, filmed, year, rating, authorId }) => {
+      const newMovie = {
+        id: String(movies.length + 1),
+        title,
+        filmed,
+        year,
+        rating,
+        authorId,
+      }
+
+      movies.push(newMovie)
+      return newMovie
+    },
+
+    deleteMovie: (_, { id }) => {
+      const index = movies.findIndex((m) => m.id === id)
+      if (index === -1) return false
+      movies.splice(index, 1)
+      return true
+    },
+
+    updateMovieRating: (_, { id, rating }) => {
+      const movieForUpdate = movies.find((m) => m.id === id)
+
+      if (!movieForUpdate) {
+        return null
+      }
+
+      movieForUpdate.rating = rating
+      return movieForUpdate
+    },
+  },
 }
