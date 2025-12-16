@@ -7,9 +7,7 @@ import mongoose from "mongoose"
 
 dotenv.config()
 const mongoUri = process.env.MONGO_URI
-
 await mongoose.connect(mongoUri)
-
 console.log("MongoDB coonected:", mongoose.connection.name)
 
 const server = new ApolloServer({
