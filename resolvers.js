@@ -1,53 +1,46 @@
-import { movies, authors } from "./data.js"
+import { MovieModel } from "./models/Movie.js"
+import { AuthorModel } from "./models/Author.js"
 
 export const resolvers = {
   Query: {
-    movies: () => movies,
-    authors: () => authors,
-    movie: (_, { id }) => movies.find((movie) => movie.id === id),
-    author: (_, { id }) => authors.find((author) => author.id === id),
-    moviesByYear: (_, { year }) => movies.filter((m) => m.year === year),
-    topRatedMovies: (_, { minRating }) => movies.filter((m) => m.rating >= minRating),
+    movies: async () => await MovieModel.find(),
+    authors: async () => await AuthorModel.find(),
+    movie: async (_, { id }) => await MovieModel.findById(id),
+    author: async (_, { id }) => await AuthorModel.findById(id),
+    moviesByYear: async (_, { year }) => await MovieModel.find({ year }),
+    topRatedMovies: async (_, { minRating }) =>
+      await MovieModel.find({ rating: { $gte: minRating } }),
   },
 
   Movie: {
-    author: (parent) => authors.find((a) => a.id === parent.authorId),
+    author: async (parent) => await AuthorModel.findById(parent.authorId),
   },
 
   Author: {
-    movies: (parent) => movies.filter((m) => m.authorId === parent.id),
+    movies: async (parent) => await MovieModel.find({ authorId: parent.id }),
   },
 
   Mutation: {
-    addMovie: (_, { title, filmed, year, rating, authorId }) => {
-      const newMovie = {
-        id: String(movies.length + 1),
+    addMovie: async (_, { title, filmed, year, rating, authorId }) => {
+      const newMovie = new MovieModel({
         title,
         filmed,
         year,
         rating,
         authorId,
-      }
+      })
 
-      movies.push(newMovie)
+      await newMovie.save()
       return newMovie
     },
 
-    deleteMovie: (_, { id }) => {
-      const index = movies.findIndex((m) => m.id === id)
-      if (index === -1) return false
-      movies.splice(index, 1)
-      return true
+    deleteMovie: async (_, { id }) => {
+      const res = await MovieModel.findByIdAndDelete(id)
+      return !!res
     },
 
-    updateMovieRating: (_, { id, rating }) => {
-      const movieForUpdate = movies.find((m) => m.id === id)
-
-      if (!movieForUpdate) {
-        return null
-      }
-
-      movieForUpdate.rating = rating
+    updateMovieRating: async (_, { id, rating }) => {
+      const movieForUpdate = await MovieModel.findByIdAndUpdate(id, rating)
       return movieForUpdate
     },
   },
